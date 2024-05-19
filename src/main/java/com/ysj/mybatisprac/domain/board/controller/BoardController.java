@@ -1,6 +1,7 @@
 package com.ysj.mybatisprac.domain.board.controller;
 
 import com.ysj.mybatisprac.domain.board.dto.BoardDto;
+import com.ysj.mybatisprac.domain.board.dto.BoardFileDto;
 import com.ysj.mybatisprac.domain.board.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -22,7 +24,7 @@ public class BoardController {
     }
 
     @PostMapping("/save")
-    public String save(BoardDto boardDto) {
+    public String save(BoardDto boardDto) throws IOException {
         System.out.println("boardDto: " + boardDto);
         boardService.save(boardDto);
         return "redirect:/list";
@@ -41,6 +43,10 @@ public class BoardController {
         boardService.updateHits(id);
         BoardDto boardDto = boardService.findById(id);
         model.addAttribute("board", boardDto);
+        if(boardDto.getFileAttached() == 1) {
+            BoardFileDto boardFileDto = boardService.findFile(id);
+            model.addAttribute("boardFile", boardFileDto);
+        }
         return "detail";
     }
 

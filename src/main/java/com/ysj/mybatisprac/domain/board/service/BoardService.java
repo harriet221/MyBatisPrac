@@ -1,10 +1,14 @@
 package com.ysj.mybatisprac.domain.board.service;
 
 import com.ysj.mybatisprac.domain.board.dto.BoardDto;
+import com.ysj.mybatisprac.domain.board.dto.BoardFileDto;
 import com.ysj.mybatisprac.domain.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -12,8 +16,34 @@ import java.util.List;
 public class BoardService {
     private final BoardRepository boardRepository;
 
-    public void save(BoardDto boardDto) {
-        boardRepository.save(boardDto);
+    public void save(BoardDto boardDto) throws IOException {
+        if(boardDto.getBoardFile().isEmpty()) {
+            boardDto.setFileAttached(0);
+            boardRepository.save(boardDto);
+        } else {
+            boardDto.setFileAttached(1);
+            // 게시글 저장 후 id 값 활용을 위해 반환 받음
+            BoardDto savedBoard = boardRepository.save(boardDto);
+
+            // 파일 가져와서 저장용 이름 만들기
+            MultipartFile boardFile = boardDto.getBoardFile();
+            String originalFileName = boardFile.getOriginalFilename();
+            String storedFileName = System.currentTimeMillis() + "-" + originalFileName;
+
+            // BoardFileDTO 세팅
+            BoardFileDto boardFileDto = new BoardFileDto();
+            boardFileDto.setOriginalFileName(originalFileName);
+            boardFileDto.setStoredFileName(storedFileName);
+            boardFileDto.setBoardId(savedBoard.getId());
+
+            // 파일 저장용 폴더에 파일 저장 처리
+            String savePath = "C:/Users/Harriet.SJ/Downloads/mybatis/" + storedFileName;
+            boardFile.transferTo(new File(savePath));
+            
+            // board_file_table 저장 처리
+            boardRepository.saveFile(boardFileDto);
+        }
+
     }
 
     public List<BoardDto> findAll() {
@@ -34,5 +64,9 @@ public class BoardService {
 
     public void delete(Long id) {
         boardRepository.delete(id);
+    }
+
+    public BoardFileDto findFile(Long id) {
+        return boardRepository.findFile(id);
     }
 }

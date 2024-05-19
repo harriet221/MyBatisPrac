@@ -4,5 +4,6 @@
 <configuration>
     <typeAliases>
         <typeAlias type="com.ysj.mybatisprac.domain.board.dto.BoardDto" alias="board"></typeAlias>
+        <typeAlias type="com.ysj.mybatisprac.domain.board.dto.BoardFileDto" alias="boardFile"></typeAlias>
     </typeAliases>
 </configuration>
