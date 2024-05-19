@@ -17,7 +17,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
 
     public void save(BoardDto boardDto) throws IOException {
-        if(boardDto.getBoardFile().isEmpty()) {
+        if(boardDto.getBoardFile().get(0).isEmpty()) {
             boardDto.setFileAttached(0);
             boardRepository.save(boardDto);
         } else {
@@ -25,23 +25,24 @@ public class BoardService {
             // 게시글 저장 후 id 값 활용을 위해 반환 받음
             BoardDto savedBoard = boardRepository.save(boardDto);
 
-            // 파일 가져와서 저장용 이름 만들기
-            MultipartFile boardFile = boardDto.getBoardFile();
-            String originalFileName = boardFile.getOriginalFilename();
-            String storedFileName = System.currentTimeMillis() + "-" + originalFileName;
+            for(MultipartFile boardFile : boardDto.getBoardFile()) {
+                // 파일 가져와서 저장용 이름 만들기
+                String originalFileName = boardFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "-" + originalFileName;
 
-            // BoardFileDTO 세팅
-            BoardFileDto boardFileDto = new BoardFileDto();
-            boardFileDto.setOriginalFileName(originalFileName);
-            boardFileDto.setStoredFileName(storedFileName);
-            boardFileDto.setBoardId(savedBoard.getId());
+                // BoardFileDTO 세팅
+                BoardFileDto boardFileDto = new BoardFileDto();
+                boardFileDto.setOriginalFileName(originalFileName);
+                boardFileDto.setStoredFileName(storedFileName);
+                boardFileDto.setBoardId(savedBoard.getId());
 
-            // 파일 저장용 폴더에 파일 저장 처리
-            String savePath = "C:/Users/Harriet.SJ/Downloads/mybatis/" + storedFileName;
-            boardFile.transferTo(new File(savePath));
-            
-            // board_file_table 저장 처리
-            boardRepository.saveFile(boardFileDto);
+                // 파일 저장용 폴더에 파일 저장 처리
+                String savePath = "C:/Users/Harriet.SJ/Downloads/mybatis/" + storedFileName;
+                boardFile.transferTo(new File(savePath));
+
+                // board_file_table 저장 처리
+                boardRepository.saveFile(boardFileDto);
+            }
         }
 
     }
@@ -66,7 +67,7 @@ public class BoardService {
         boardRepository.delete(id);
     }
 
-    public BoardFileDto findFile(Long id) {
+    public List<BoardFileDto> findFile(Long id) {
         return boardRepository.findFile(id);
     }
 }
